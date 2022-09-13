@@ -27,9 +27,6 @@ const login = async (req, res) => {
     if (!existing)
         return res.json({ success: false, message: "Incorrect email/password" })
 
-    if (existing.role !== "Mentee")
-        return res.json({ success: false, message: "You do not have access" })
-
     const credentialsCorrect = await bcrypt.compare(password, existing.password)
     if (!credentialsCorrect) {
         return res.json({ success: false, message: "Incorrect email/password" })
@@ -49,6 +46,7 @@ const login = async (req, res) => {
 
 const testToken = async (req, res) => {
     const user = req.user
+    console.log(user)
     return res.send("ok")
 }
 
