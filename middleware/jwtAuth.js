@@ -15,7 +15,8 @@ const authUser = (req, res, next) => {
             }
             if (!user) return res.json({ success: false, message: "Unauthorized" })
 
-            if (user.iat < Date.now() / 1000 - 3600)
+            if (user.iat < Date.now() / 1000 - 360000)
+                //ORINGAL if (user.iat < Date.now() / 1000 - 3600)
                 return res.json({ success: false, message: "Session expired" })
 
 

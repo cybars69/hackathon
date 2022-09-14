@@ -22,8 +22,10 @@ app.use(cors());
 
 app.use("/api/user", require("./api/user"))
 app.use("/api/mentee", authUser, require("./api/mentee"))
+app.use("/api/mentor", authUser, require("./api/mentor"))
+app.use("/api/admin", authUser, require("./api/admin"))
 
-app.use("*", (req, res) => res.status(404).json({ success: false }).send())
+app.use("*", (req, res) => res.status(404).json({ success: false, message: "Wrong place my friend" }).send())
 
 const PORT = process.env.port || 4000
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
