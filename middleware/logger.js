@@ -1,9 +1,7 @@
-const myLogger = function (req, res, next) {
-    console.log("Logged")
-    // console.log({ user: req.user, path: req.path })
+const myLogger = (req, res, next) => {
+    console.log({ path: req.path, user: req.user.user, role: req.user.role })
+
     next()
 }
-
-
 
 module.exports = myLogger

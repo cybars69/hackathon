@@ -3,7 +3,7 @@ const express = require('express')
 const mongoose = require("mongoose")
 const cors = require("cors")
 const authUser = require("./middleware/jwtAuth.js")
-// const logger = require("./middleware/logger")
+const logger = require("./middleware/logger")
 const app = express()
 
 mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -18,12 +18,11 @@ app.use(
 )
 app.use(express.json())
 app.use(cors());
-// app.use(logger());
 
 app.use("/api/user", require("./api/user"))
-app.use("/api/mentee", authUser, require("./api/mentee"))
-app.use("/api/mentor", authUser, require("./api/mentor"))
-app.use("/api/admin", authUser, require("./api/admin"))
+app.use("/api/mentee", authUser, logger, require("./api/mentee"))
+app.use("/api/mentor", authUser, logger, require("./api/mentor"))
+app.use("/api/admin", authUser, logger, require("./api/admin"))
 
 app.use("*", (req, res) => res.status(404).json({ success: false, message: "Wrong place my friend" }).send())
 
