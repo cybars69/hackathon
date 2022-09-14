@@ -11,7 +11,7 @@ const mentorDash = async (req, res) => {
         .select({ _id: 0, role: 0, password: 0, __v: 0, assigned_mentees: 0 })
         .then(response => {
             console.log(response)
-            res.json({ success: true, message: "Got all assigned mentees data", data: response })
+            return res.json({ success: true, message: "Got all assigned mentees data", data: response })
         })
 }
 
@@ -35,8 +35,6 @@ const newMessage = async (req, res) => {
 const chatHistory = async (req, res) => {
     const { mentee } = req.params
     const { assigned_mentees } = req.user
-
-    const { message } = req.body
 
     if (!assigned_mentees.includes(mentee + "@iith.ac.in"))
         return res.json({ success: false, message: "You do not have access" })

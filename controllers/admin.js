@@ -4,48 +4,87 @@ const jwt = require('jsonwebtoken')
 const messageSchema = require("../models/message")
 const userSchema = require("../models/user")
 
-const mentorDash = async (req, res) => {
-    const { user, assigned_mentees } = req.user
-
-    userSchema.find({ email: { $in: assigned_mentees } })
-        .select({ _id: 0, role: 0, password: 0, __v: 0, assigned_mentees: 0 })
+const mentorsList = async (req, res) => {
+    userSchema.find({ role: "Mentor" })
+        .select({ _id: 0, role: 0, password: 0, __v: 0, assigned_mentees: 0, stress_history: 0 })
         .then(response => {
-            console.log(response)
-            res.json({ success: true, message: "Got all assigned mentees data", data: response })
+            res.json({ success: true, message: "Got all mentors data", data: response })
         })
 }
 
-const newMessage = async (req, res) => {
-    const { mentee } = req.params
-    const { assigned_mentees } = req.user
+const mentorData = async (req, res) => {
+    const { mentor } = req.params
+    userSchema.findOne({ email: mentor + "@iith.ac.in" })
+        .select({ _id: 0, role: 0, password: 0, __v: 0, stress_history: 0 })
+        .then(response => {
+            if (!response)
+                return res.json({ success: false, message: "User does not exist" })
+            const { assigned_mentees } = response
+            userSchema.find({ email: { $in: assigned_mentees } })
+                .select({ _id: 0, role: 0, password: 0, __v: 0, assigned_mentees: 0 })
+                .then(response2 => {
+                    return res.json({ success: true, message: "Got all assigned mentees data", data: response2 })
+                })
+        })
+}
 
-    const { message } = req.body
+const addMentor = async (req, res) => {
+    const { mentor } = req.body
+    if (!mentor)
+        return res.json({ success: false, message: "Select a user" })
 
-    if (!assigned_mentees.includes(mentee + "@iith.ac.in"))
-        return res.json({ success: false, message: "You do not have access" })
+    userSchema.findOneAndUpdate({ email: mentor + "@iith.ac.in" }, { role: "Mentor" })
+        .then(response => {
+            if (!response)
+                return res.json({ success: false, message: "User does not exist" })
+            return res.json({ success: true, message: `Given mentor role to ${mentor}` }).send()
+        })
+}
 
-    const newMessage = new messageSchema({ from_id: "Mentor", to_id: mentee + "@iith.ac.in", message })
+const remMentor = async (req, res) => {
+    const { mentor } = req.body
+    if (!mentor)
+        return res.json({ success: false, message: "Select a mentor" })
 
-    newMessage.save().then(response => {
+    userSchema.findOneAndUpdate({ email: mentor + "@iith.ac.in" }, { role: "Mentee" })
+        .then(response => {
+            if (!response)
+                return res.json({ success: false, message: "User does not exist" })
+            return res.json({ success: true, message: `Removed mentor role from ${mentor}` }).send()
+        })
+}
+
+const assignMentor = async (req, res) => {
+    var { mentee, mentor } = req.body
+    if (!mentor || !mentee)
+        return res.json({ success: false, message: "Please enter mentor and mentee details" })
+
+    const menteeAssigned = await userSchema.findOne({ email: mentee + "@iith.ac.in" })
+    if (menteeAssigned && menteeAssigned.assigned_mentor)
+        return res.json({ success: false, message: "Mentee already has a mentor assigned" })
+
+    const isMentor = !!await userSchema.findOne({ email: mentor, role: "Mentor" })
+    if (!isMentor)
+        return res.json({ success: false, message: "The user is not a mentor" })
+
+    await userSchema.updateOne({ email: mentee + "@iith.ac.in" }, { assigned_mentor: mentor })
+    await userSchema.updateOne({ email: mentor }, { $push: { assigned_mentees: mentee + "@iith.ac.in" } })
+    return res.json({ success: true, message: `Assigned ${mentee}@iith.ac.in to ${mentor}` })
+}
+
+const unassignMentor = async (req, res) => {
+    var { mentee } = req.body
+    if (!mentee)
+        return res.json({ success: false, message: "Please enter mentee details" })
+
+    const menteeData = await userSchema.findOne({ email: mentee + "@iith.ac.in" })
+
+    await userSchema.updateOne({ email: mentee + "@iith.ac.in" }, { assigned_mentor: null })
+
+    userSchema.updateMany({}, { $pull: { assigned_mentees: mentee + "@iith.ac.in" } }).then(response => {
         console.log(response)
-        res.send("ok")
+        return res.json({ success: true, message: `Unassigned ${mentee}@iith.ac.in from assigned coordinator.` })
     })
 }
 
-const chatHistory = async (req, res) => {
-    const { mentee } = req.params
-    const { assigned_mentees } = req.user
-
-    const { message } = req.body
-
-    if (!assigned_mentees.includes(mentee + "@iith.ac.in"))
-        return res.json({ success: false, message: "You do not have access" })
-
-    messageSchema.find({ $or: [{ from_id: mentee + "@iith.ac.in" }, { to_id: mentee + "@iith.ac.in" }] })
-        .select({ _id: 0, updated_at: 0, __v: 0 })
-        .then(response => {
-            return res.json({ success: true, mesage: "Fetched Chat History.", data: response }).send()
-        })
-}
-
-module.exports = { mentorDash, newMessage, chatHistory }
+module.exports = { mentorsList, mentorData, addMentor, remMentor, assignMentor, unassignMentor }
