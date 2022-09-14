@@ -7,7 +7,8 @@ const listAll = (req, res) => {
     userSchema.find({ role: "Mentee" })
         .select({ _id: 0, password: 0, stress_history: 0, assigned_mentees: 0, __v: 0 })
         .then(response => {
-            return res.json({ success: true, message: "Got all unassigned mentees data", data: response.filter(mentee => !!!mentee.assigned_mentor) })
+            return res.json({ success: true, message: "Got all unassigned mentees data", data: response })
+            // return res.json({ success: true, message: "Got all unassigned mentees data", data: response.filter(mentee => !!!mentee.assigned_mentor) })
         })
         .catch(er => {
             console.log(er)
