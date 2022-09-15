@@ -2,8 +2,10 @@ const userSchema = require("../models/user")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken')
 
-const messageSchema = require("../models/message")
-const userSchema = require("../models/user")
+const axios =require('axios').default;
+
+const messageSchema = require("../models/message");
+const { response } = require("express");
 
 const userGraph = async (req, res) => {
     const { stress_history } = req.user
@@ -42,25 +44,48 @@ const chatHistory = async (req, res) => {
 const predictStress = async (req,res)=>{
     const {user} = req.user
     const data = req.body;
-    console.log(data);
+    const data1 = JSON.stringify(req.body)
+    console.log(JSON.stringify(req.body));
 
-    fetch(`http://localhost:5000/predict`,{
-        headers : {
-            'Accept' : 'application/json',
-            'Content-Type' : 'application/json'
-        },
-        method: "GET",
-        body : JSON.stringify(data)
-    }).then(response=>{
-        userSchema.findOne({email:user}).then(
-            user=>{
-                user.stress_history.push(response);
-                user.save();
-            }
-        )
-        res.json({success:true,message:"Predicted stress level",data:response});
-    })
-    .catch(err=>res.status(400).json('Error : '+err));
+
+    axios.post(`https://localhost:5000/predict`,data1,{
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    }).then(response=>res.status(200).json(response))
+    
+    
+    // fetch(`http://localhost:5000/predict`,{
+    //     headers : {
+    //         'Accept' : 'application/json',
+    //         'Content-Type' : 'application/json'
+    //     },
+    //     method: "GET",
+    //     body : JSON.stringify(data)
+    // })
+
+    // res.json(100)
+    // axios({
+    //     method: "get",
+    //     url: "http://localhost:5000/predict",
+    //     data: JSON.stringify(data)
+    // })
+    // .then(response=>res.json(100))
+        
+    // axios.post('http://localhost:5000/predict',{params:data}) 
+    // .then(response=>res.json(100))
+    
+    // .then(response=>{
+    //     userSchema.findOne({email:user}).then(
+    //         user=>{
+    //             user.stress_history.push(response);
+    //             user.save();
+    //         }
+    //         )
+            
+    //         return res.json({success:true,message:"Predicted stress level",data:response})
+    //     })
+    //     .catch(err=>res.status(400).json('Error : '+err));
 
 }
 

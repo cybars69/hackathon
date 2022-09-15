@@ -28,7 +28,7 @@ class Model():
             # self.text_columns = ['description_text']
             self.text_columns = []
             df[self.text_columns] = df[self.text_columns].replace(np.nan, "")
-            self.numerical_columns = ['study_hours', 'freq_exam','loan_repayment_issue', 'fees_issue', 'food_issue', 'health_issue', 'family_issue', 'communication_issue', 'exam_pressure', 'hectic_timetable', 'acad_rating']
+            self.numerical_columns = ['study_hours', 'freq_exam','loan_repayment_issue', 'fees_issue', 'food_issue', 'health_issue', 'family_issue', 'communication_issue', 'hectic_timetable', 'acad_rating']
 
             for col in self.numerical_columns:
                 scaler = StandardScaler()
@@ -48,6 +48,7 @@ class Model():
             self.model.fit(X, y)
             
     def predict(self, X):
+        print(X)
         X = pd.json_normalize(X)
         text_data = X[self.text_columns]
         X = X.drop(self.text_columns, axis=1)
