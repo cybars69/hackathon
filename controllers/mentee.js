@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken')
 
 const messageSchema = require("../models/message")
+const userSchema = require("../models/user")
 
 const userGraph = async (req, res) => {
     const { stress_history } = req.user
@@ -38,4 +39,29 @@ const chatHistory = async (req, res) => {
         })
 }
 
-module.exports = { userGraph, chatHistory, newMessage }
+const predictStress = async (req,res)=>{
+    const {user} = req.user
+    const data = req.body;
+    console.log(data);
+
+    fetch(`http://localhost:5000/predict`,{
+        headers : {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+        },
+        method: "GET",
+        body : JSON.stringify(data)
+    }).then(response=>{
+        userSchema.findOne({email:user}).then(
+            user=>{
+                user.stress_history.push(response);
+                user.save();
+            }
+        )
+        res.json({success:true,message:"Predicted stress level",data:response});
+    })
+    .catch(err=>res.status(400).json('Error : '+err));
+
+}
+
+module.exports = { userGraph, chatHistory, newMessage,  predictStress}

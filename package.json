@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "devStart": "clear; nodemon server.js"
+    "devStart": "clear; nodemon server.js",
+    "devServer": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
